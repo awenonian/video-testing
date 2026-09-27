@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>T-Pose Orbit</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d0f14; }
+  canvas { display: block; }
+  #label {
+    position: fixed; left: 56px; bottom: 48px; color: #e8e4dc;
+    font: 500 15px/1.4 "Helvetica Neue", Arial, sans-serif; letter-spacing: .32em;
+    text-transform: uppercase; opacity: .85;
+  }
+  #label small { display: block; letter-spacing: .2em; opacity: .55; font-size: 12px; margin-top: 6px; }
+  #deg {
+    position: fixed; right: 56px; bottom: 48px; color: #e8e4dc; opacity: .6;
+    font: 400 13px/1 "Courier New", monospace; letter-spacing: .15em;
+  }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="label">Figure 01 — T-Pose<small>procedural mannequin · 360° orbit</small></div>
+<div id="deg">000°</div>
+<script type="module">
+import * as THREE from 'three';
+
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d0f14);
+scene.fog = new THREE.Fog(0x0d0f14, 6, 14);
+
+const camera = new THREE.PerspectiveCamera(35, W / H, 0.1, 50);
+
+// ---------- lighting ----------
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x2a2018, 0.9));
+const key = new THREE.DirectionalLight(0xfff1dd, 2.6);
+key.position.set(2.5, 4.5, 3);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = key.shadow.camera.bottom = -2;
+key.shadow.camera.right = key.shadow.camera.top = 2;
+key.shadow.radius = 6;
+key.shadow.bias = -0.0005;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x7fb2ff, 2.2);
+rim.position.set(-3, 2.5, -3.5);
+scene.add(rim);
+const fill = new THREE.PointLight(0xff9a5a, 6, 6, 2);
+fill.position.set(-2, 0.6, 2);
+scene.add(fill);
+
+// ---------- stage ----------
+const stage = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.3, 1.38, 0.08, 96),
+  new THREE.MeshStandardMaterial({ color: 0x1b1e26, roughness: 0.55, metalness: 0.2 })
+);
+stage.position.y = -0.04;
+stage.receiveShadow = true;
+scene.add(stage);
+const ring = new THREE.Mesh(
+  new THREE.TorusGeometry(1.3, 0.006, 8, 160),
+  new THREE.MeshBasicMaterial({ color: 0xffb36b })
+);
+ring.rotation.x = Math.PI / 2;
+scene.add(ring);
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(20, 64),
+  new THREE.MeshStandardMaterial({ color: 0x12141a, roughness: 1 })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -0.08;
+floor.receiveShadow = true;
+scene.add(floor);
+// tick marks on the stage edge
+const ticks = new THREE.Group();
+for (let i = 0; i < 72; i++) {
+  const a = (i / 72) * Math.PI * 2, long = i % 6 === 0;
+  const t = new THREE.Mesh(
+    new THREE.BoxGeometry(0.004, 0.002, long ? 0.09 : 0.04),
+    new THREE.MeshBasicMaterial({ color: long ? 0xffb36b : 0x5a6070 })
+  );
+  const r = 1.25 - (long ? 0.045 : 0.02);
+  t.position.set(Math.sin(a) * r, 0.001, Math.cos(a) * r);
+  t.rotation.y = a;
+  ticks.add(t);
+}
+scene.add(ticks);
+
+// ---------- mannequin ----------
+const skin = new THREE.MeshPhysicalMaterial({
+  color: 0xd9c3a5, roughness: 0.42, metalness: 0.0, clearcoat: 0.35, clearcoatRoughness: 0.5,
+  sheen: 0.4, sheenColor: new THREE.Color(0xffe3c4)
+});
+const joint = new THREE.MeshPhysicalMaterial({ color: 0x6b4a33, roughness: 0.35, clearcoat: 0.6 });
+
+const body = new THREE.Group();
+scene.add(body);
+const add = (mesh) => { mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh); return mesh; };
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
+// Tapered limb segment: profile = [[t, r], ...] with t in 0..1 along from->to.
+function limb(from, to, profile, mat = skin, scaleXZ = [1, 1]) {
+  const len = from.distanceTo(to);
+  const pts = [new THREE.Vector2(0, 0)];
+  for (const [t, r] of profile) pts.push(new THREE.Vector2(r, t * len));
+  pts.push(new THREE.Vector2(0, len));
+  const geo = new THREE.LatheGeometry(pts, 48);
+  geo.scale(scaleXZ[0], 1, scaleXZ[1]);
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, mat);
+  m.position.copy(from);
+  m.quaternion.setFromUnitVectors(V(0, 1, 0), to.clone().sub(from).normalize());
+  return add(m);
+}
+function ball(p, r, mat = joint, s = [1, 1, 1]) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 40, 24), mat);
+  m.position.copy(p); m.scale.set(...s);
+  return add(m);
+}
+// smooth profile helper: rounded caps at both ends
+const capsule = (r0, rMid, r1, bulge = 0.5) => [
+  [0.0, r0 * 0.35], [0.03, r0 * 0.8], [0.08, r0],
+  [bulge, rMid], [0.92, r1], [0.97, r1 * 0.8], [1.0, r1 * 0.35]
+];
+
+// torso (pelvis -> chest), elliptical cross-section
+limb(V(0, 0.86, 0), V(0, 1.02, 0), [[0, 0.10], [0.2, 0.15], [0.6, 0.165], [1, 0.14]], skin, [1.05, 0.72]);
+limb(V(0, 1.0, 0), V(0, 1.50, 0),
+  [[0, 0.125], [0.12, 0.12], [0.35, 0.135], [0.6, 0.165], [0.78, 0.172], [0.9, 0.15], [0.97, 0.10], [1, 0.05]],
+  skin, [1.1, 0.68]);
+ball(V(0, 1.01, 0), 0.118, joint, [1.12, 0.45, 0.78]); // waist joint
+// neck + head
+limb(V(0, 1.47, 0), V(0, 1.58, 0), [[0, 0.055], [0.5, 0.048], [1, 0.05]]);
+ball(V(0, 1.575, 0.005), 0.052, joint, [1, 0.5, 1]);
+const head = ball(V(0, 1.68, 0.01), 0.105, skin, [0.86, 1.12, 0.98]);
+// jaw & nose so the facing direction reads during the orbit
+ball(V(0, 1.635, 0.02), 0.078, skin, [0.92, 0.85, 1.0]);
+const nose = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 16), skin);
+nose.position.set(0, 1.675, 0.108); nose.rotation.x = Math.PI / 2 - 0.25; add(nose);
+for (const s of [-1, 1]) ball(V(s * 0.09, 1.675, -0.005), 0.022, skin, [0.5, 1.1, 0.8]); // ears
+
+for (const s of [-1, 1]) {
+  // ---- arms (T-pose: straight out along X) ----
+  const sh = V(s * 0.205, 1.425, -0.01);
+  ball(V(s * 0.16, 1.43, -0.01), 0.07, skin, [1.1, 0.85, 0.95]); // deltoid mass
+  ball(sh, 0.055);
+  const el = V(s * 0.49, 1.425, -0.01), wr = V(s * 0.745, 1.425, -0.01);
+  limb(sh, el, capsule(0.052, 0.047, 0.038, 0.35));
+  ball(el, 0.04);
+  limb(el, wr, capsule(0.04, 0.041, 0.028, 0.3), skin, [1, 0.85]);
+  ball(wr, 0.028);
+  // hand: flat palm + fingers + thumb
+  const palm = ball(V(s * 0.8, 1.425, -0.01), 0.05, skin, [1.15, 0.38, 0.9]);
+  for (let f = 0; f < 4; f++) {
+    const z = -0.01 + (f - 1.5) * 0.019;
+    const len = [0.065, 0.075, 0.07, 0.055][f];
+    limb(V(s * 0.845, 1.425, z), V(s * (0.845 + len), 1.423, z * 1.05), capsule(0.0085, 0.008, 0.007));
+  }
+  limb(V(s * 0.79, 1.42, 0.03), V(s * 0.835, 1.415, 0.075), capsule(0.011, 0.01, 0.008));
+
+  // ---- legs ----
+  const hip = V(s * 0.095, 0.91, 0), kn = V(s * 0.1, 0.50, 0.01), an = V(s * 0.1, 0.085, -0.01);
+  ball(hip, 0.075);
+  limb(hip, kn, capsule(0.085, 0.07, 0.05, 0.3));
+  ball(kn, 0.052);
+  limb(kn, an, [[0, 0.018], [0.03, 0.045], [0.08, 0.05], [0.28, 0.055], [0.7, 0.036], [0.93, 0.03], [0.98, 0.024], [1, 0.012]]);
+  ball(an, 0.033);
+  // foot: heel -> toe along +Z
+  limb(V(s * 0.1, 0.035, -0.06), V(s * 0.105, 0.03, 0.17),
+       [[0, 0.01], [0.06, 0.033], [0.4, 0.04], [0.85, 0.042], [0.97, 0.03], [1, 0.012]], skin, [1, 0.62]).rotation.z += 0;
+}
+// flatten feet onto the ground a touch
+body.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
+
+// ---------- dust particles for depth ----------
+const pg = new THREE.BufferGeometry();
+const N = 400, pos = new Float32Array(N * 3);
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+for (let i = 0; i < N; i++) {
+  const a = rnd() * Math.PI * 2, r = 1.8 + rnd() * 5;
+  pos.set([Math.cos(a) * r, rnd() * 3.5, Math.sin(a) * r], i * 3);
+}
+pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const dust = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffd9b0, size: 0.012, transparent: true, opacity: 0.5 }));
+scene.add(dust);
+
+// ---------- deterministic frame driver ----------
+const deg = document.getElementById('deg');
+const target = V(0, 0.95, 0);
+window.renderAt = (t) => {         // t in [0, 1) — one full orbit
+  const ease = t;                  // constant speed so the loop is seamless
+  const a = ease * Math.PI * 2 + 0.35;
+  const R = 3.7 + 0.25 * Math.sin(t * Math.PI * 4);
+  const h = 1.15 + 0.35 * Math.sin(t * Math.PI * 2);
+  camera.position.set(Math.sin(a) * R, h, Math.cos(a) * R);
+  camera.lookAt(target);
+  dust.rotation.y = t * Math.PI * 2 * 0.25;
+  deg.textContent = String(Math.round(t * 360) % 360).padStart(3, '0') + '°';
+  renderer.render(scene, camera);
+};
+window.renderAt(0);
+window.ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "video-testing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awenonian/video-testing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/awenonian/video-testing/issues"
+  },
+  "homepage": "https://github.com/awenonian/video-testing#readme",
+  "dependencies": {
+    "playwright": "^1.56.1",
+    "three": "^0.170.0"
+  }
+}
