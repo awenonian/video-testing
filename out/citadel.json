@@ -1,0 +1,64 @@
+{
+ "groups": [
+  "rock",
+  "paving",
+  "joint",
+  "path",
+  "wall",
+  "lawn",
+  "water",
+  "tree",
+  "wood",
+  "metal",
+  "glass"
+ ],
+ "palette": {
+  "rock": {
+   "color": 8090214,
+   "roughness": 1
+  },
+  "paving": {
+   "color": 14275784,
+   "roughness": 0.9
+  },
+  "joint": {
+   "color": 10262154,
+   "roughness": 1
+  },
+  "path": {
+   "color": 13222578,
+   "roughness": 0.85
+  },
+  "wall": {
+   "color": 15657955,
+   "roughness": 0.8
+  },
+  "lawn": {
+   "color": 6257980,
+   "roughness": 1
+  },
+  "water": {
+   "color": 4022136,
+   "roughness": 0.15,
+   "metalness": 0.3
+  },
+  "tree": {
+   "color": 15855592,
+   "roughness": 0.7
+  },
+  "wood": {
+   "color": 3881535,
+   "roughness": 0.6
+  },
+  "metal": {
+   "color": 12170406,
+   "roughness": 0.35,
+   "metalness": 0.8
+  },
+  "glass": {
+   "color": 2303790,
+   "roughness": 0.3
+  }
+ },
+ "up": "z"
+}

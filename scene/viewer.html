@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Model Viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #15121a; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "/node_modules/three/build/three.module.js",
+  "three/addons/": "/node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<script type="module">
+// Generic preview for meshes written by model/*.mjs: loads out/<m>.bin and out/<m>.json (?m=citadel).
+// window.view(az, el, dist, tx, ty, tz), window.mode('painted'|'grey'), window.renderAt(t) for render.mjs.
+import * as THREE from 'three';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const name = new URLSearchParams(location.search).get('m') || 'citadel';
+const meta = await (await fetch(`/out/${name}.json`)).json();
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xb9c3cc);
+scene.fog = new THREE.Fog(0xb9c3cc, 1400, 3200);
+const camera = new THREE.PerspectiveCamera(30, W / H, 1, 8000);
+
+scene.add(new THREE.HemisphereLight(0xdfe8f5, 0x5a5040, 1.1));
+const sun = new THREE.DirectionalLight(0xfff3e0, 2.6);
+sun.position.set(800, 900, 450);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 10, far: 3000 });
+sun.shadow.bias = -0.002;
+sun.shadow.normalBias = 2.5;
+scene.add(sun);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshStandardMaterial({ color: 0x6b5a43, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const buf = await (await fetch(`/out/${name}.bin`)).arrayBuffer();
+const [nv, nt] = new Uint32Array(buf, 0, 2);
+const pos = new Float32Array(buf, 8, nv * 3);
+const idx = new Uint32Array(buf, 8 + nv * 12, nt * 3);
+const grp = new Uint8Array(buf, 8 + nv * 12 + nt * 12, nt);
+
+const painted = {}, grey = new THREE.MeshStandardMaterial({ color: 0x9a9690, roughness: 0.75 });
+const meshes = [], model = new THREE.Group();
+meta.groups.forEach((gname, g) => {
+  let n = 0; for (let t = 0; t < nt; t++) if (grp[t] === g) n++;
+  if (!n) return;
+  const p = new Float32Array(n * 9); let o = 0;
+  for (let t = 0; t < nt; t++) if (grp[t] === g) for (let k = 0; k < 3; k++) { p.set(pos.subarray(idx[t * 3 + k] * 3, idx[t * 3 + k] * 3 + 3), o); o += 3; }
+  let geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  geo = toCreasedNormals(geo, Math.PI / 5);
+  painted[g] = new THREE.MeshStandardMaterial(meta.palette[gname]);
+  const m = new THREE.Mesh(geo, painted[g]);
+  m.castShadow = m.receiveShadow = true; m.userData.g = g;
+  meshes.push(m); model.add(m);
+});
+if (meta.up === 'z') model.rotation.x = -Math.PI / 2;      // model z-up -> three y-up (model y becomes -z)
+const box = new THREE.Box3().setFromObject(model), c = box.getCenter(new THREE.Vector3());
+model.position.set(-c.x, 0, -c.z);
+scene.add(model);
+
+window.mode = m => { for (const x of meshes) x.material = m === 'grey' ? grey : painted[x.userData.g]; };
+window.view = (az = 30, el = 35, dist = 1500, tx = 0, ty = 0, tz = 0) => {
+  const a = az * Math.PI / 180, e = el * Math.PI / 180;
+  const t = new THREE.Vector3(tx, ty, tz);
+  camera.position.set(tx + dist * Math.sin(a) * Math.cos(e), ty + dist * Math.sin(e), tz + dist * Math.cos(a) * Math.cos(e));
+  camera.lookAt(t);
+  renderer.render(scene, camera);
+};
+window.renderAt = t => view(360 * t + 20, 32, 1500, 0, 20, 0);
+view();
+window.ready = true;
+</script>
+</body>
+</html>
