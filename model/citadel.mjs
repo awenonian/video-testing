@@ -133,16 +133,20 @@ const outward = i => {
 OUTLINE.forEach((p, i) => normalAt.set(key(...p), outward(i)));
 
 // ================================================================ ROCK BODY
+let PAVING;
 {
-  let rock = outlineCS.extrude(H, Math.ceil(H) - 1);
+  // The rock stops just under the paving so the two tops never coincide (coplanar faces
+  // would take either part's colour at random in the preview).
+  const ROCK_TOP = H - 0.4;
+  let rock = outlineCS.extrude(ROCK_TOP, Math.ceil(ROCK_TOP) - 1);
   // push side vertices outward with layered noise: nothing at the lip, most at the foot,
   // so the face leans out slightly and never overhangs.
   rock = rock.warp(v => {
     const [x, y, z] = v;
-    if (z > H - 0.01 || x < 0.5) return;
+    if (z > ROCK_TOP - 0.01 || x < 0.5) return;
     const n = normalAt.get(key(x, y));
     if (!n) return;
-    const t = (H - z) / H;
+    const t = (ROCK_TOP - z) / ROCK_TOP;
     const layer = Math.floor((H - z) / 1.6);                  // stepped ledges, ~1.6mm beds
     const strata = fbm(x * 0.04, y * 0.04, layer * 0.9);       // each bed juts out by its own amount
     const crag = fbm(x * 0.15 + 40, y * 0.15, z * 0.1);         // vertical cracks and buttresses
@@ -150,7 +154,7 @@ OUTLINE.forEach((p, i) => normalAt.set(key(...p), outward(i)));
     v[0] = x + n[0] * d; v[1] = y + n[1] * d;
   });
   addFloor(rock, 'rock');
-  addFloor(slab(outlineCS, H - 0.8, H), 'paving');
+  PAVING = slab(outlineCS, H - 0.8, H);   // the processional path is cut out of this below
 }
 
 // ================================================================ PAVING JOINTS
@@ -186,6 +190,7 @@ const bandCS = rect(COURT.x + COURT.R - 4, -BAND, TIP - 60, BAND).intersect(outl
   var JOINTS = tag(slab(joints, H - 0.6, H + 1), 'joint');
 }
 // processional path gets its own colour, flush with the paving
+addFloor(PAVING.subtract(slab(bandCS, H - 1, H + 1)), 'paving');
 addFloor(slab(bandCS, H - 0.8, H), 'path');
 
 // ================================================================ COURTYARD

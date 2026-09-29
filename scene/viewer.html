@@ -21,13 +21,14 @@
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 
-const name = new URLSearchParams(location.search).get('m') || 'citadel';
+const params = new URLSearchParams(location.search);
+const name = params.get('m') || 'citadel';
 const meta = await (await fetch(`/out/${name}.json`)).json();
 const W = innerWidth, H = innerHeight;
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
 renderer.setSize(W, H);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !params.has('noshadow');   // debug switches: ?noshadow, ?flat
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -68,7 +69,7 @@ meta.groups.forEach((gname, g) => {
   for (let t = 0; t < nt; t++) if (grp[t] === g) for (let k = 0; k < 3; k++) { p.set(pos.subarray(idx[t * 3 + k] * 3, idx[t * 3 + k] * 3 + 3), o); o += 3; }
   let geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(p, 3));
-  geo = toCreasedNormals(geo, Math.PI / 5);
+  geo = params.has('flat') ? (geo.computeVertexNormals(), geo) : toCreasedNormals(geo, Math.PI / 5);
   painted[g] = new THREE.MeshStandardMaterial(meta.palette[gname]);
   const m = new THREE.Mesh(geo, painted[g]);
   m.castShadow = m.receiveShadow = true; m.userData.g = g;
