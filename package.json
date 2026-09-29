@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/awenonian/video-testing#readme",
   "dependencies": {
+    "manifold-3d": "^3.5.4",
     "playwright": "^1.56.1",
     "three": "^0.170.0"
   }
