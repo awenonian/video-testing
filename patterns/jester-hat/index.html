@@ -1,0 +1,1039 @@
+<title>Jester Hat Pattern</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: drafting table. Controls on the left like a spec sheet, the full pattern sheet laid on a cutting mat on the right. */
+:root {
+  --bg: #e9ecee;
+  --surface: #f9fafb;
+  --ink: #1b2026;
+  --muted: #58616c;
+  --line: #cbd2d9;
+  --accent: #c42a3d;
+  --accent-ink: #ffffff;
+  --mat: #2c5a4d;
+  --mat-grid: rgba(255,255,255,.13);
+  --mat-grid-strong: rgba(255,255,255,.26);
+  --warn-bg: #fff3d6;
+  --warn-ink: #6b4a00;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181c; --surface: #1d2227; --ink: #e5e8eb; --muted: #9aa4ae; --line: #343c45;
+    --accent: #ff5d70; --accent-ink: #1a0a0d; --mat: #1d3c33;
+    --mat-grid: rgba(255,255,255,.08); --mat-grid-strong: rgba(255,255,255,.17);
+    --warn-bg: #3a2f12; --warn-ink: #ffd98a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181c; --surface: #1d2227; --ink: #e5e8eb; --muted: #9aa4ae; --line: #343c45;
+  --accent: #ff5d70; --accent-ink: #1a0a0d; --mat: #1d3c33;
+  --mat-grid: rgba(255,255,255,.08); --mat-grid-strong: rgba(255,255,255,.17);
+  --warn-bg: #3a2f12; --warn-ink: #ffd98a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px; margin-bottom: 22px; }
+h1 { font: 800 clamp(2rem, 5vw, 3.1rem)/1 var(--font-display); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+h1 .pip { color: var(--accent); }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+.units { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.units label { cursor: pointer; }
+.units input { position: absolute; opacity: 0; pointer-events: none; }
+.units span { display: block; padding: 4px 14px; border-radius: 999px; font: 500 13px var(--font-mono); color: var(--muted); }
+.units input:checked + span { background: var(--ink); color: var(--bg); }
+.units input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.spec { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 18px 18px; }
+fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 14px 0 4px; }
+fieldset:first-of-type { border-top: 0; }
+legend { font: 600 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 0; margin-bottom: 8px; float: left; width: 100%; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 104px; gap: 10px; align-items: center; padding-block: 4px; clear: both; }
+.row label { font-size: 14px; }
+.row small { display: block; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.num { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.num input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--ink); font: 500 14px var(--font-mono); padding: 6px 4px 6px 8px; font-variant-numeric: tabular-nums; }
+.num input:focus { outline: none; }
+.num:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.num span { font: 12px var(--font-mono); color: var(--muted); padding-right: 8px; }
+.colors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; clear: both; }
+.colors label { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; background: var(--bg); }
+.colors input[type=color] { width: 28px; height: 28px; border: 0; padding: 0; background: none; cursor: pointer; }
+.colors input[type=text] { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--ink); font: 14px var(--font-body); }
+.colors label:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+select { width: 100%; font: 14px var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font: 500 13px var(--font-body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; margin-top: 6px; clear: both; display: block; }
+.linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.mat {
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-grid-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-grid-strong) 1px, transparent 1px),
+    linear-gradient(var(--mat-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-grid) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  border-radius: 10px; padding: 18px; overflow-x: auto;
+}
+.mat svg { display: block; width: 100%; height: auto; min-width: 560px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.matcap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; color: rgba(255,255,255,.8); font: 12px var(--font-mono); margin-top: 10px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { font: 600 14px var(--font-body); border-radius: 8px; padding: 10px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn small { display: block; font: 400 11px var(--font-mono); opacity: .8; }
+#status { font: 13px var(--font-mono); color: var(--muted); }
+
+.warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+.warn ul { margin: 0; padding-left: 18px; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.card h3 { font: 600 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.card table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.card td { padding: 3px 0; vertical-align: top; }
+.card td:last-child { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 10px; }
+.card svg { display: block; width: 100%; max-width: 230px; margin: 0 auto; height: auto; }
+.cap { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; text-align: center; }
+
+.howto { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 40px; }
+.howto h2 { grid-column: 1 / -1; font: 800 1.9rem/1.1 var(--font-display); margin: 0 0 4px; }
+.howto section { min-width: 0; }
+.howto h3 { font: 600 1.05rem var(--font-display); margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); display: inline-block; }
+.howto ol, .howto ul { margin: 0; padding-left: 22px; }
+.howto li { margin: 6px 0; max-width: 65ch; }
+.howto .m { font-family: var(--font-mono); font-size: .92em; }
+@media (prefers-reduced-motion: no-preference) { .btn { transition: transform .08s; } .btn:active { transform: translateY(1px); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Jester Hat<span class="pip">.</span></h1>
+      <p>A pattern drafted from your head measurement. Adjust the numbers, check the pattern sheet, then export it for a home printer or a print shop.</p>
+    </div>
+    <div class="units" role="radiogroup" aria-label="Units">
+      <label><input type="radio" name="units" id="u-cm" value="cm" checked><span>cm</span></label>
+      <label><input type="radio" name="units" id="u-in" value="in"><span>inches</span></label>
+    </div>
+  </header>
+
+  <div class="grid">
+    <form class="spec" id="spec" autocomplete="off">
+      <fieldset>
+        <legend>Fit</legend>
+        <div class="row"><label for="head">Head circumference<small>Tape level around the forehead, just above the ears</small></label><div class="num"><input id="head" type="number" step="0.5" min="30"><span class="u"></span></div></div>
+        <div class="row"><label for="ease">Ease<small>Added to the band so it isn't tight</small></label><div class="num"><input id="ease" type="number" step="0.25" min="0"><span class="u"></span></div></div>
+        <div class="row"><label for="depth">Hat depth<small>Band edge to crown point, where the horns split</small></label><div class="num"><input id="depth" type="number" step="0.5" min="5"><span class="u"></span></div></div>
+        <div class="row"><label for="brimH">Band height<small>Finished height of the diamond band</small></label><div class="num"><input id="brimH" type="number" step="0.25" min="1"><span class="u"></span></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Horns</legend>
+        <div class="row"><label for="horns">Number of horns</label><select id="horns"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
+        <div class="row"><label for="hornHeight">Horn height<small>How high the arch rises above the band</small></label><div class="num"><input id="hornHeight" type="number" step="0.5" min="5"><span class="u"></span></div></div>
+        <div class="row"><label for="hornReach">Horn reach<small>How far out past the band the tip hangs</small></label><div class="num"><input id="hornReach" type="number" step="0.5" min="2"><span class="u"></span></div></div>
+        <div class="row"><label for="tipHeight">Tip height<small>Where the tip ends, above the band (negative hangs lower)</small></label><div class="num"><input id="tipHeight" type="number" step="0.5"><span class="u"></span></div></div>
+        <div class="row"><label for="hornDepth">Horn thickness<small>Across the horn at the top of the arch</small></label><div class="num"><input id="hornDepth" type="number" step="0.5" min="2"><span class="u"></span></div></div>
+        <button type="button" class="linkbtn" id="rescale">Reset these to suit the head size</button>
+      </fieldset>
+      <fieldset>
+        <legend>Diamond band</legend>
+        <div class="row"><label for="diamonds">Diamonds around<small id="diamondHint">Blank picks a count that lines up with every seam</small></label><div class="num"><input id="diamonds" type="number" step="1" min="4" placeholder="auto"><span></span></div></div>
+        <div class="row"><label for="inset">Gap at band edges<small>Keeps diamond points out of the seams</small></label><div class="num"><input id="inset" type="number" step="0.1" min="0"><span class="u"></span></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Fabric &amp; sewing</legend>
+        <div class="colors">
+          <label><input type="color" id="c1hex" value="#c8102e" aria-label="Color 1 swatch"><input type="text" id="c1" value="Red" aria-label="Color 1 name"></label>
+          <label><input type="color" id="c2hex" value="#f4f4f0" aria-label="Color 2 swatch"><input type="text" id="c2" value="White" aria-label="Color 2 name"></label>
+        </div>
+        <div class="row"><label for="sa">Seam allowance<small>Already added to every piece</small></label><div class="num"><input id="sa" type="number" step="0.1" min="0.3"><span class="u"></span></div></div>
+        <div class="row"><label for="paper">Home printer paper</label><select id="paper"><option value="letter">US Letter</option><option value="a4">A4</option></select></div>
+      </fieldset>
+    </form>
+
+    <div class="stage">
+      <div class="mat">
+        <div id="sheet" aria-label="Pattern sheet preview"></div>
+        <div class="matcap"><span id="sheetSize"></span><span>grid: 1 cm / 5 cm at sheet scale</span></div>
+      </div>
+      <div id="warnings" class="warn" hidden></div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="dlTiled">Tiled PDF<small id="tiledInfo">home printer</small></button>
+        <button class="btn" type="button" id="dlFull">Full-size PDF<small id="fullInfo">print shop</small></button>
+        <button class="btn" type="button" id="dlSvg">SVG<small>projector / cutter</small></button>
+        <span id="status" role="status"></span>
+      </div>
+      <div class="facts">
+        <div class="card"><h3>Top view</h3><div id="topview"></div><p class="cap">Front is at the bottom. Each horn is half of each colour.</p></div>
+        <div class="card"><h3>Cutting list</h3><table id="cutlist"></table></div>
+        <div class="card"><h3>Seam lengths</h3><table id="seams"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="howto" id="howto"></div>
+</div>
+
+<script id="core">
+/* ===================== Pattern core (no DOM) ===================== */
+const PT_PER_CM = 72 / 2.54;
+const IN = 2.54;
+
+const V = {
+  add: (a, b) => [a[0] + b[0], a[1] + b[1]],
+  sub: (a, b) => [a[0] - b[0], a[1] - b[1]],
+  mul: (a, s) => [a[0] * s, a[1] * s],
+  dot: (a, b) => a[0] * b[0] + a[1] * b[1],
+  cross: (a, b) => a[0] * b[1] - a[1] * b[0],
+  len: a => Math.hypot(a[0], a[1]),
+  norm: a => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0] / l, a[1] / l]; },
+  lerp: (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t],
+};
+
+function cubic(p0, p1, p2, p3, n) {
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    const a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
+    out.push([a * p0[0] + b * p1[0] + c * p2[0] + d * p3[0], a * p0[1] + b * p1[1] + c * p2[1] + d * p3[1]]);
+  }
+  return out;
+}
+function quad(p0, p1, p2, n) {
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    out.push([u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]]);
+  }
+  return out;
+}
+function pathLength(pts) { let s = 0; for (let i = 1; i < pts.length; i++) s += V.len(V.sub(pts[i], pts[i - 1])); return s; }
+function atLength(pts, s) {
+  for (let i = 1; i < pts.length; i++) {
+    const seg = V.len(V.sub(pts[i], pts[i - 1]));
+    if (s <= seg || i === pts.length - 1) {
+      const t = seg ? Math.min(1, s / seg) : 0;
+      return { p: V.lerp(pts[i - 1], pts[i], t), t: V.norm(V.sub(pts[i], pts[i - 1])) };
+    }
+    s -= seg;
+  }
+}
+function signedArea(pts) { let a = 0; for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; }
+function dedupe(pts) {
+  const out = [];
+  for (const p of pts) if (!out.length || V.len(V.sub(p, out[out.length - 1])) > 1e-6) out.push(p);
+  if (out.length > 1 && V.len(V.sub(out[0], out[out.length - 1])) < 1e-6) out.pop();
+  return out;
+}
+function pointInPolygon(p, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+}
+/* Offset a closed polygon outward by d. Sharp convex corners (the horn tip) are squared off at limit*d. */
+function offsetPolygon(poly, d, limit = 2.2) {
+  let pts = dedupe(poly);
+  if (signedArea(pts) < 0) pts = pts.slice().reverse();
+  const n = pts.length, out = [];
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p = pts[i], p1 = pts[(i + 1) % n];
+    const d1 = V.norm(V.sub(p, p0)), d2 = V.norm(V.sub(p1, p));
+    const n1 = [d1[1], -d1[0]], n2 = [d2[1], -d2[0]];
+    const q1 = V.add(p, V.mul(n1, d)), q2 = V.add(p, V.mul(n2, d));
+    const cr = V.cross(d1, d2);
+    if (Math.abs(cr) < 1e-9) { out.push(q1); continue; }
+    const t = V.cross(V.sub(q2, q1), d2) / cr;
+    const m = V.add(q1, V.mul(d1, t));
+    if (cr > 0 && V.len(V.sub(m, p)) > limit * d) {
+      const u = V.norm(V.add(n1, n2)), L = limit * d;
+      const t1 = (L - V.dot(V.sub(q1, p), u)) / V.dot(d1, u);
+      const t2 = (L - V.dot(V.sub(q2, p), u)) / V.dot(d2, u);
+      out.push(V.add(q1, V.mul(d1, t1)), V.add(q2, V.mul(d2, t2)));
+    } else out.push(m);
+  }
+  return out;
+}
+function segCross(a, b, c, d) {
+  const r = V.sub(b, a), s = V.sub(d, c), den = V.cross(r, s);
+  if (Math.abs(den) < 1e-12) return false;
+  const t = V.cross(V.sub(c, a), s) / den, u = V.cross(V.sub(c, a), r) / den;
+  return t > 1e-9 && t < 1 - 1e-9 && u > 1e-9 && u < 1 - 1e-9;
+}
+function isSimple(poly) {
+  const n = poly.length;
+  for (let i = 0; i < n; i++) for (let j = i + 2; j < n; j++) {
+    if (i === 0 && j === n - 1) continue;
+    if (segCross(poly[i], poly[(i + 1) % n], poly[j], poly[(j + 1) % n])) return false;
+  }
+  return true;
+}
+function distToPolyline(p, pts) {
+  let best = Infinity;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], ab = V.sub(pts[i], a);
+    const t = Math.max(0, Math.min(1, V.dot(V.sub(p, a), ab) / (V.dot(ab, ab) || 1)));
+    best = Math.min(best, V.len(V.sub(p, V.add(a, V.mul(ab, t)))));
+  }
+  return best;
+}
+function bbox(pts) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
+}
+
+/* ---------- defaults & units ---------- */
+function proportions(head) {
+  return {
+    depth: 0.30 * head,
+    hornHeight: 0.34 * head,
+    hornReach: 0.30 * head,
+    tipHeight: 0.03 * head,
+    hornDepth: 0.12 * head,
+  };
+}
+function defaultParams() {
+  const head = 57;
+  return Object.assign({ head, ease: 1.5, brimH: 5, horns: 3, diamonds: 0, inset: 0.3, sa: 1.0,
+    c1: 'Red', c2: 'White', c1hex: '#c8102e', c2hex: '#f4f4f0', units: 'cm', paper: 'letter' }, proportions(head));
+}
+function trimNum(x, dp) { return (+x.toFixed(dp)).toString(); }
+function fmt(cm, units) {
+  if (units === 'in') return trimNum(cm / IN, 2) + ' in';
+  return trimNum(cm, 1) + ' cm';
+}
+function autoDiamonds(L, H, N) {
+  const step = 2 * N, target = L / (H / 1.4);   // diamonds about 1.4x taller than wide
+  return Math.max(step, Math.round(target / step) * step);
+}
+
+/* ---------- the pattern ---------- */
+function computePattern(p) {
+  const warnings = [];
+  const N = p.horns, L = p.head + p.ease, w = L / (2 * N);
+  const h = p.depth - p.brimH;                    // valley seam rises this far above the band
+  if (h < 3) warnings.push('Hat depth must be at least 3 cm more than the band height.');
+  const hh = Math.max(h, 3);
+  const cx = 0.2 * w;
+  const B = [0, 0], A = [w, 0], C = [cx, hh];
+  const Ty = p.tipHeight, Tx = w + p.hornReach, T = [Tx, Ty];
+  const D = p.hornDepth;
+  // Horn centreline: rises straight up from the middle of A-C, arches outward, hangs down to the tip.
+  const M = V.lerp(A, C, 0.5);
+  const spineTop = p.hornHeight - D / 2;
+  const Ks = (spineTop - (M[1] + Ty) / 8) / 0.75;
+  const spineRaw = cubic(M, [M[0], Ks], [Tx, Ks], T, 400);
+  const cum = [0];
+  for (let i = 1; i < spineRaw.length; i++) cum.push(cum[i - 1] + V.len(V.sub(spineRaw[i], spineRaw[i - 1])));
+  const Ls = cum[cum.length - 1];
+  let iTop = 0; spineRaw.forEach((q, i) => { if (q[1] > spineRaw[iTop][1]) iTop = i; });
+  const sTop = Math.max(cum[iTop], 0.2 * Ls);
+  const W0 = V.len(V.sub(A, C));
+  const smooth = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+  const width = s => s <= sTop ? W0 + (D - W0) * smooth(s / sTop) : D * Math.pow(Math.max(0, 1 - (s - sTop) / (Ls - sTop)), 0.85);
+  const a0 = V.mul(V.sub(A, C), 0.5);
+  const under = [], top = [];                     // under: A -> tip (inside of the curl); top: C -> tip (over the arch)
+  const NS = 120;
+  for (let k = 0; k <= NS; k++) {
+    const s = Ls * k / NS;
+    let i = 1; while (i < cum.length - 1 && cum[i] < s) i++;
+    const f = (s - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1);
+    const q = V.lerp(spineRaw[i - 1], spineRaw[i], f);
+    const t = V.norm(V.sub(spineRaw[i], spineRaw[i - 1]));
+    const n = [t[1], -t[0]];
+    const b = smooth(s / (0.7 * sTop));
+    const half = V.lerp(a0, V.mul(n, width(s) / 2), b);
+    if (k === NS) { under.push(T); top.push(T); break; }
+    under.push(V.add(q, half)); top.push(V.sub(q, half));
+  }
+  under[0] = A; top[0] = C;
+  const valley = quad(B, [0, 0.55 * hh], C, 30);              // band edge -> crown point
+
+  const seam = dedupe([B, ...under, ...top.slice(1, -1).reverse(), ...valley.slice(1, -1).reverse(), ...[] ]);
+  if (!isSimple(seam)) warnings.push('The horn edges cross each other. Try a thinner horn, a taller horn, or more reach.');
+  let minThick = Infinity;
+  for (let i = Math.round(NS * 0.15); i < Math.round(NS * 0.8); i++) minThick = Math.min(minThick, distToPolyline(under[i], top));
+  if (minThick < 1.8) warnings.push('Part of the horn is under 2 cm wide, which is hard to turn right side out. Increase horn thickness.');
+  if (spineTop < hh + 1) warnings.push('The horns are low for this hat depth. Raise the horn height or make the horns thinner.');
+  const cut = offsetPolygon(seam, p.sa);
+  const lengths = { under: pathLength(under), top: pathLength(top), valley: pathLength(valley), bottom: w };
+
+  // diamonds
+  const nD = p.diamonds > 0 ? Math.round(p.diamonds) : autoDiamonds(L, p.brimH, N);
+  const dw = L / nD, s = Math.max(0.2, 1 - 2 * p.inset / p.brimH);
+  if (nD % (2 * N) !== 0) warnings.push(`${nD} diamonds won't line up with the seams; a multiple of ${2 * N} will.`);
+
+  return { p, N, L, w, h: hh, A, B, C, T, under, top, valley, seam, cut, lengths, nD, dw, dScale: s, warnings, minThick };
+}
+
+/* ---------- drawing primitives (cm, y down) ---------- */
+const INK = '#111111', SEAMC = '#666666', MARK = '#222222';
+function P(pts, o = {}) { return Object.assign({ t: 'path', pts, closed: false, stroke: INK, lw: 0.03, dash: null, fill: null }, o); }
+function T(x, y, s, size, o = {}) { return Object.assign({ t: 'text', x, y, s, size, bold: false, angle: 0, anchor: 'start', color: INK }, o); }
+function circle(c, r, n = 20) { const out = []; for (let i = 0; i < n; i++) { const a = i / n * 2 * Math.PI; out.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); } return out; }
+const DASH_SEAM = [0.25, 0.15], DASH_FOLD = [0.8, 0.2, 0.12, 0.2];
+const LW_CUT = 0.05, LW_SEAM = 0.022;
+
+/* Helvetica advance widths (1/1000 em) for ASCII 32..126 */
+const HELV = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const HELV_EXTRA = { '×': 584, '·': 278, '–': 556, '—': 1000, '°': 400, '→': 1000 };
+function textWidth(s, size, bold) {
+  let w = 0;
+  for (const ch of s) { const c = ch.charCodeAt(0); w += (c >= 32 && c <= 126) ? HELV[c - 32] : (HELV_EXTRA[ch] || 556); }
+  return w / 1000 * size * (bold ? 1.06 : 1);
+}
+
+function labelAlong(pts, frac, str, size, poly, inset = 0.22) {
+  const total = pathLength(pts);
+  const { p, t } = atLength(pts, total * frac);
+  let ang = Math.atan2(t[1], t[0]) * 180 / Math.PI;
+  let tt = t;
+  if (ang > 90 || ang < -90) { ang += 180; tt = [-t[0], -t[1]]; }
+  let nIn = [-tt[1], tt[0]];
+  if (!pointInPolygon(V.add(p, V.mul(nIn, 0.3)), poly)) nIn = [-nIn[0], -nIn[1]];
+  const up = [Math.sin(ang * Math.PI / 180), -Math.cos(ang * Math.PI / 180)];
+  const off = V.dot(up, nIn) > 0 ? inset : inset + size * 0.72;
+  const q = V.add(p, V.mul(nIn, off));
+  return T(q[0], q[1], str, size, { angle: ang, anchor: 'middle', color: '#444444' });
+}
+function notchesAlong(pts, frac, count, poly, sa) {
+  const out = [], total = pathLength(pts);
+  for (let k = 0; k < count; k++) {
+    const { p, t } = atLength(pts, total * frac + (k - (count - 1) / 2) * 0.5);
+    let n = [-t[1], t[0]];
+    if (pointInPolygon(V.add(p, V.mul(n, 0.1)), poly)) n = [-n[0], -n[1]];
+    out.push(P([p, V.add(p, V.mul(n, sa))], { lw: 0.035, stroke: MARK }));
+  }
+  return out;
+}
+
+/* Piece 1: horn panel */
+function panelPiece(g, units) {
+  const p = g.p, F = q => [q[0], -q[1]];           // design coords are y-up
+  const seam = g.seam.map(F), cut = g.cut.map(F);
+  const under = g.under.map(F), top = g.top.map(F), valley = g.valley.map(F);
+  const prims = [];
+  prims.push(P(cut, { closed: true, lw: LW_CUT, fill: '#ffffff' }));
+  prims.push(P(seam, { closed: true, lw: LW_SEAM, stroke: SEAMC, dash: DASH_SEAM }));
+  prims.push(...notchesAlong(valley, 0.5, 1, seam, p.sa));
+  prims.push(...notchesAlong(under, 0.5, 2, seam, p.sa));
+  prims.push(...notchesAlong(top, 0.45, 1, seam, p.sa));
+  for (const q of [F(g.C), F(g.T)]) prims.push(P(circle(q, 0.14), { closed: true, fill: MARK, stroke: null }));
+
+  const ls = 0.24;
+  prims.push(labelAlong(under, 0.42, 'UNDER EDGE', ls, seam));
+  prims.push(labelAlong(top, 0.5, 'TOP EDGE', ls, seam));
+  prims.push(labelAlong(valley, 0.45, 'VALLEY', ls, seam));
+  prims.push(labelAlong([F(g.B), F(g.A)], 0.5, 'SEW TO BAND', ls, seam));
+  prims.push(T(F(g.C)[0] + 0.3, F(g.C)[1] + 0.5, 'stop at dot', 0.2, { color: '#444444' }));
+
+  // grainline near the under edge
+  const gx = g.w - 0.9, gy0 = -1.3, gy1 = -Math.max(3, g.h * 0.85);
+  prims.push(P([[gx, gy0], [gx, gy1]], { lw: 0.03 }));
+  prims.push(P([[gx - 0.2, gy1 + 0.45], [gx, gy1], [gx + 0.2, gy1 + 0.45]], { lw: 0.03 }));
+  prims.push(P([[gx - 0.2, gy0 - 0.45], [gx, gy0], [gx + 0.2, gy0 - 0.45]], { lw: 0.03 }));
+  prims.push(T(gx - 0.12, (gy0 + gy1) / 2, 'GRAIN', 0.22, { angle: -90, anchor: 'middle' }));
+
+  // text block in the lower body
+  const lines = [
+    ['1  HORN PANEL', true],
+    [`Cut 3 ${p.c1}, printed side up`, false],
+    [`Cut 3 ${p.c2}, printed side down`, false],
+    ['(or cut 3 times with both fabrics', false],
+    [' stacked right sides together)', false],
+    [`Seam allowance ${fmt(p.sa, units)}`, false],
+    [`Head ${fmt(p.head, units)}, ${g.N} horns`, false],
+  ];
+  const x0 = g.C[0] + 0.35, avail = gx - 0.55 - x0, availH = g.h - 1.0;
+  let size = 0.4;
+  for (const [s, b] of lines) size = Math.min(size, avail / (textWidth(s, 1, b) || 1));
+  size = Math.max(0.16, Math.min(size, availH / (lines.length * 1.35)));
+  let y = -g.h + 1.2 + size;
+  lines.forEach(([s, b], i) => { prims.push(T(x0, y, s, i === 0 ? size * 1.15 : size, { bold: b })); y += size * 1.35 + (i === 0 ? size * 0.3 : 0); });
+  return finishPiece(prims);
+}
+
+/* Piece 2: band, folded in half lengthwise */
+function bandPiece(g, units) {
+  const p = g.p, sa = p.sa, H = p.brimH, Lb = g.L;
+  const W = Lb + 2 * sa, Hc = 2 * H + 2 * sa;
+  const prims = [];
+  prims.push(P([[0, 0], [W, 0], [W, Hc], [0, Hc]], { closed: true, lw: LW_CUT, fill: '#ffffff' }));
+  prims.push(P([[sa, sa], [W - sa, sa], [W - sa, Hc - sa], [sa, Hc - sa]], { closed: true, lw: LW_SEAM, stroke: SEAMC, dash: DASH_SEAM }));
+  prims.push(P([[0, sa + H], [W, sa + H]], { lw: 0.03, stroke: '#333333', dash: DASH_FOLD }));
+  // diamonds on the outer half
+  const cy = sa + H / 2, hw = g.dw / 2 * g.dScale, hh = H / 2 * g.dScale;
+  const tint = mixHex(p.c1hex, '#ffffff', 0.72);
+  for (let j = 0; j < g.nD; j++) {
+    const cx = sa + (j + 0.5) * g.dw;
+    prims.push(P([[cx - hw, cy], [cx, cy - hh], [cx + hw, cy], [cx, cy + hh]], { closed: true, lw: 0.025, fill: tint, stroke: '#555555' }));
+  }
+  // seam-match notches and labels on both long edges
+  for (let k = 0; k <= 2 * g.N; k++) {
+    const x = sa + k * g.w;
+    const lab = (k === 0 || k === 2 * g.N) ? 'CB' : (k === g.N && g.N % 2 === 1) ? 'H  CF' : (k === g.N) ? 'V  CF' : (k % 2 ? 'H' : 'V');
+    if (k > 0 && k < 2 * g.N) {
+      prims.push(P([[x, 0], [x, sa]], { lw: 0.035, stroke: MARK }));
+      prims.push(P([[x, Hc], [x, Hc - sa]], { lw: 0.035, stroke: MARK }));
+    }
+    const tx = k === 0 ? x + 0.15 : k === 2 * g.N ? x - 0.15 : x;
+    const an = k === 0 ? 'start' : k === 2 * g.N ? 'end' : 'middle';
+    prims.push(T(tx, sa + 0.4, lab, 0.26, { bold: true, anchor: an }));
+    prims.push(T(tx, Hc - sa - 0.2, lab, 0.26, { bold: true, anchor: an }));
+  }
+  const mid = W / 2;
+  const fs = Math.min(0.42, H / 7);
+  prims.push(T(mid - g.w, sa + H + fs * 1.6, `2  BAND  cut 1 ${p.c2}  +  interfacing for the outer half`, fs, { bold: true, anchor: 'middle' }));
+  prims.push(T(mid - g.w, sa + H + fs * 3.1, `Lining half. Turn this edge under ${fmt(sa, units)} and slipstitch inside the hat.`, fs * 0.8, { anchor: 'middle' }));
+  prims.push(T(mid - g.w, sa + H + fs * 4.4, `Diamonds ${g.nD} around, every ${fmt(g.dw, units)}. V = valley seam, H = horn seam, CB = centre back.`, fs * 0.8, { anchor: 'middle' }));
+  for (const fx of [W * 0.12, W * 0.88]) prims.push(T(fx, sa + H - 0.12, 'FOLD', 0.24, { anchor: 'middle', color: '#333333' }));
+  prims.push(T(sa + 0.9 * g.w, sa - 0.25, 'Outer edge: sew to hat', 0.22, { anchor: 'middle', color: '#444444' }));
+  return finishPiece(prims);
+}
+
+/* Piece 3: appliqué diamond (no seam allowance) */
+function diamondPiece(g, units) {
+  const p = g.p, hw = g.dw / 2 * g.dScale, hh = p.brimH / 2 * g.dScale;
+  const prims = [];
+  prims.push(P([[0, hh], [hw, 0], [2 * hw, hh], [hw, 2 * hh]], { closed: true, lw: LW_CUT, fill: mixHex(p.c1hex, '#ffffff', 0.72) }));
+  const x = 2 * hw + 0.4;
+  prims.push(T(x, hh - 0.35, '3  DIAMOND', 0.34, { bold: true }));
+  prims.push(T(x, hh + 0.1, `Cut ${g.nD} ${p.c1}, backed with fusible web`, 0.26));
+  prims.push(T(x, hh + 0.5, `No seam allowance. ${fmt(2 * hw, units)} x ${fmt(2 * hh, units)}`, 0.26));
+  return finishPiece(prims);
+}
+
+/* Title block with test squares and legend */
+function titleBlock(g, units) {
+  const p = g.p, prims = [];
+  prims.push(T(0, 1.0, 'JESTER HAT', 1.0, { bold: true }));
+  prims.push(T(0, 1.75, `${g.N} horns  ·  head ${fmt(p.head, units)}  ·  band ${fmt(g.L, units)} finished  ·  seam allowance ${fmt(p.sa, units)} included`, 0.32));
+  prims.push(T(0, 2.35, 'Print at 100% / actual size. Measure the squares before cutting.', 0.32, { bold: true }));
+  prims.push(P([[0, 3], [5, 3], [5, 8], [0, 8]], { closed: true, lw: 0.03 }));
+  prims.push(T(2.5, 5.6, '5 cm', 0.4, { anchor: 'middle', bold: true }));
+  const s2 = 2 * IN;
+  prims.push(P([[6, 3], [6 + s2, 3], [6 + s2, 3 + s2], [6, 3 + s2]], { closed: true, lw: 0.03 }));
+  prims.push(T(6 + s2 / 2, 3 + s2 / 2 + 0.15, '2 in', 0.4, { anchor: 'middle', bold: true }));
+  // legend
+  const lx = 12.2; let ly = 3.3;
+  prims.push(P([[lx, ly], [lx + 1.6, ly]], { lw: LW_CUT })); prims.push(T(lx + 2, ly + 0.12, 'Cut line', 0.3)); ly += 0.8;
+  prims.push(P([[lx, ly], [lx + 1.6, ly]], { lw: LW_SEAM, stroke: SEAMC, dash: DASH_SEAM })); prims.push(T(lx + 2, ly + 0.12, 'Stitching line', 0.3)); ly += 0.8;
+  prims.push(P([[lx, ly], [lx + 1.6, ly]], { lw: 0.03, dash: DASH_FOLD })); prims.push(T(lx + 2, ly + 0.12, 'Fold line', 0.3)); ly += 0.8;
+  prims.push(P([[lx + 0.8, ly - 0.3], [lx + 0.8, ly + 0.3]], { lw: 0.035 })); prims.push(T(lx + 2, ly + 0.12, 'Notch: snip 3 mm', 0.3)); ly += 0.8;
+  prims.push(P(circle([lx + 0.8, ly], 0.14), { closed: true, fill: MARK, stroke: null })); prims.push(T(lx + 2, ly + 0.12, 'Dot: start/stop stitching', 0.3));
+  return finishPiece(prims, 0);
+}
+
+function finishPiece(prims, pad = 0) {
+  const pts = [];
+  for (const q of prims) {
+    if (q.t === 'path') pts.push(...q.pts);
+    else {
+      const w = textWidth(q.s, q.size, q.bold), a = q.angle * Math.PI / 180;
+      const dir = [Math.cos(a), Math.sin(a)], up = [Math.sin(a), -Math.cos(a)];
+      const sh = q.anchor === 'middle' ? -w / 2 : q.anchor === 'end' ? -w : 0;
+      const o = V.add([q.x, q.y], V.mul(dir, sh));
+      pts.push(o, V.add(o, V.mul(dir, w)), V.add(o, V.mul(up, q.size * 0.75)), V.add(V.add(o, V.mul(dir, w)), V.mul(up, q.size * 0.75)));
+    }
+  }
+  const b = bbox(pts);
+  const moved = prims.map(q => q.t === 'path'
+    ? Object.assign({}, q, { pts: q.pts.map(([x, y]) => [x - b.x0 + pad, y - b.y0 + pad]) })
+    : Object.assign({}, q, { x: q.x - b.x0 + pad, y: q.y - b.y0 + pad }));
+  return { prims: moved, w: b.w + 2 * pad, h: b.h + 2 * pad };
+}
+function rotatePiece(pc) {           // 90 degrees clockwise
+  const H = pc.h;
+  return {
+    w: pc.h, h: pc.w,
+    prims: pc.prims.map(q => q.t === 'path'
+      ? Object.assign({}, q, { pts: q.pts.map(([x, y]) => [H - y, x]) })
+      : Object.assign({}, q, { x: H - q.y, y: q.x, angle: q.angle + 90 })),
+  };
+}
+function translatePrims(prims, dx, dy) {
+  return prims.map(q => q.t === 'path'
+    ? Object.assign({}, q, { pts: q.pts.map(([x, y]) => [x + dx, y + dy]) })
+    : Object.assign({}, q, { x: q.x + dx, y: q.y + dy }));
+}
+function mixHex(a, b, t) {
+  const pa = hexRgb(a), pb = hexRgb(b);
+  return '#' + pa.map((v, i) => Math.round((v + (pb[i] - v) * t) * 255).toString(16).padStart(2, '0')).join('');
+}
+function hexRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255); }
+
+/* Shelf packing. items: [{piece, id}] -> placements within width W */
+function pack(pieces, W, gap = 1.5) {
+  const order = pieces.map((pc, i) => ({ pc, i })).sort((a, b) => b.pc.h - a.pc.h);
+  const place = [];
+  let x = 0, y = 0, rowH = 0, usedW = 0;
+  for (const { pc, i } of order) {
+    if (pc.w > W + 1e-6) return null;
+    if (x > 0 && x + pc.w > W) { y += rowH + gap; x = 0; rowH = 0; }
+    place[i] = { x, y, pc };
+    x += pc.w + gap; rowH = Math.max(rowH, pc.h); usedW = Math.max(usedW, x - gap);
+  }
+  return { place, w: usedW, h: y + rowH };
+}
+function layoutVariants(g, units, withTitle) {
+  const panel = panelPiece(g, units), band = bandPiece(g, units), dia = diamondPiece(g, units);
+  const out = [];
+  for (const pr of [0, 1]) for (const br of [0, 1]) {
+    const list = [pr ? rotatePiece(panel) : panel, br ? rotatePiece(band) : band, dia];
+    if (withTitle) list.push(titleBlock(g, units));
+    out.push(list);
+  }
+  return out;
+}
+function flatten(res) {
+  const prims = [];
+  for (const pl of res.place) prims.push(...translatePrims(pl.pc.prims, pl.x, pl.y));
+  return { prims, w: res.w, h: res.h, boxes: res.place.map(pl => ({ x: pl.x, y: pl.y, w: pl.pc.w, h: pl.pc.h })) };
+}
+/* Full-size sheet: fits a 36 in (91 cm) roll, shortest length wins */
+function fullLayout(g, units, maxW = 86) {
+  // shortest sheet wins, but keep the horn panel upright unless turning it saves real paper
+  const cands = layoutVariants(g, units, true).map((list, i) => ({ r: pack(list, maxW), upright: i < 2 })).filter(c => c.r);
+  const score = c => c.r.h - (c.upright ? 8 : 0) + c.r.w * 1e-3;
+  cands.sort((a, b) => score(a) - score(b));
+  return flatten(cands[0].r);
+}
+const PAPERS = { letter: { w: 21.59, h: 27.94, name: 'US Letter' }, a4: { w: 21.0, h: 29.7, name: 'A4' } };
+const TILE_MARGIN = 1.0;
+function tiledLayout(g, units, paper) {
+  const pg = PAPERS[paper], tw = pg.w - 2 * TILE_MARGIN, th = pg.h - 2 * TILE_MARGIN;
+  let best = null;
+  for (const list of layoutVariants(g, units, false)) for (let cols = 1; cols <= 8; cols++) {
+    const r = pack(list, cols * tw - 0.4);
+    if (!r) continue;
+    const L = flatten(r), rows = Math.ceil((L.h + 0.2) / th), ncols = Math.ceil((L.w + 0.2) / tw);
+    const used = [];
+    for (let rr = 0; rr < rows; rr++) for (let c = 0; c < ncols; c++) {
+      const x0 = c * tw, y0 = rr * th;
+      if (L.boxes.some(b => b.x < x0 + tw && b.x + b.w > x0 && b.y < y0 + th && b.y + b.h > y0)) used.push([rr, c]);
+    }
+    const cand = { L, rows, cols: ncols, used, tw, th, pg };
+    if (!best || used.length < best.used.length || (used.length === best.used.length && rows * ncols < best.rows * best.cols)) best = cand;
+  }
+  // shift content by 0.1 so nothing sits exactly on a page edge
+  best.L.prims = translatePrims(best.L.prims, 0.1, 0.1);
+  best.L.boxes = best.L.boxes.map(b => Object.assign({}, b, { x: b.x + 0.1, y: b.y + 0.1 }));
+  return best;
+}
+const tileName = (r, c) => String.fromCharCode(65 + r) + (c + 1);
+
+/* ---------- SVG ---------- */
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function primsToSvg(prims) {
+  const f = v => +v.toFixed(3);
+  return prims.map(q => {
+    if (q.t === 'path') {
+      const d = 'M' + q.pts.map(([x, y]) => f(x) + ' ' + f(y)).join('L') + (q.closed ? 'Z' : '');
+      return `<path d="${d}" fill="${q.fill || 'none'}" stroke="${q.stroke || 'none'}" stroke-width="${q.lw}"${q.dash ? ` stroke-dasharray="${q.dash.join(' ')}"` : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    }
+    return `<text x="${f(q.x)}" y="${f(q.y)}" font-size="${f(q.size)}" font-family="Helvetica, Arial, sans-serif"${q.bold ? ' font-weight="700"' : ''} fill="${q.color}" text-anchor="${q.anchor}"${q.angle ? ` transform="rotate(${f(q.angle)} ${f(q.x)} ${f(q.y)})"` : ''}>${esc(q.s)}</text>`;
+  }).join('\n');
+}
+function buildSVG(g, units, margin = 1.5) {
+  const L = fullLayout(g, units);
+  const W = L.w + 2 * margin, H = L.h + 2 * margin;
+  return { svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${+W.toFixed(2)}cm" height="${+H.toFixed(2)}cm" viewBox="0 0 ${+W.toFixed(3)} ${+H.toFixed(3)}">\n<rect width="100%" height="100%" fill="#ffffff"/>\n<g transform="translate(${margin} ${margin})">\n${primsToSvg(L.prims)}\n</g>\n</svg>`, W, H };
+}
+
+/* ---------- Minimal PDF writer (vector, Helvetica, no dependencies) ---------- */
+const WINANSI = { '×': 215, '·': 183, '–': 150, '—': 151, '°': 176, '→': 187 };
+function pdfStr(s) {
+  let out = '';
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (ch === '\\' || ch === '(' || ch === ')') out += '\\' + ch;
+    else if (c >= 32 && c <= 126) out += ch;
+    else if (WINANSI[ch]) out += '\\' + WINANSI[ch].toString(8).padStart(3, '0');
+    else out += '?';
+  }
+  return out;
+}
+class PdfDoc {
+  constructor() { this.pages = []; this.ox = 0; this.oy = 0; }
+  page(wcm, hcm) { this.cur = { w: wcm, h: hcm, ops: ['1 J 1 j'] }; this.pages.push(this.cur); this.ox = this.oy = 0; return this; }
+  X(x) { return +((x + this.ox) * PT_PER_CM).toFixed(2); }
+  Y(y) { return +((this.cur.h - (y + this.oy)) * PT_PER_CM).toFixed(2); }
+  rgb(hex) { return hexRgb(hex).map(v => +v.toFixed(3)).join(' '); }
+  prim(q) {
+    const o = this.cur.ops;
+    if (q.t === 'path') {
+      if (!q.pts.length) return;
+      o.push(q.pts.map((pt, i) => `${this.X(pt[0])} ${this.Y(pt[1])} ${i ? 'l' : 'm'}`).join(' ') + (q.closed ? ' h' : ''));
+      const hasS = !!q.stroke, hasF = !!q.fill && q.closed;
+      if (hasS) o.push(`${this.rgb(q.stroke)} RG ${+(q.lw * PT_PER_CM).toFixed(3)} w [${(q.dash || []).map(d => +(d * PT_PER_CM).toFixed(2)).join(' ')}] 0 d`);
+      if (hasF) o.push(`${this.rgb(q.fill)} rg`);
+      o.push(hasS && hasF ? 'B' : hasF ? 'f' : hasS ? 'S' : 'n');
+    } else {
+      const size = q.size * PT_PER_CM, a = q.angle * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      const w = textWidth(q.s, q.size, q.bold), sh = q.anchor === 'middle' ? -w / 2 : q.anchor === 'end' ? -w : 0;
+      const x = q.x + c * sh, y = q.y + s * sh;
+      o.push(`BT /${q.bold ? 'F2' : 'F1'} 1 Tf ${this.rgb(q.color)} rg ${+(size * c).toFixed(4)} ${+(-size * s).toFixed(4)} ${+(size * s).toFixed(4)} ${+(size * c).toFixed(4)} ${this.X(x)} ${this.Y(y)} Tm (${pdfStr(q.s)}) Tj ET`);
+    }
+  }
+  prims(list, dx = 0, dy = 0) { const [a, b] = [this.ox, this.oy]; this.ox += dx; this.oy += dy; for (const q of list) this.prim(q); this.ox = a; this.oy = b; }
+  clip(x, y, w, h) { this.cur.ops.push(`q ${this.X(x)} ${this.Y(y + h)} ${+(w * PT_PER_CM).toFixed(2)} ${+(h * PT_PER_CM).toFixed(2)} re W n`); }
+  unclip() { this.cur.ops.push('Q'); }
+  output() {
+    const objs = [];
+    const add = s => { objs.push(s); return objs.length; };
+    add('<< /Type /Catalog /Pages 2 0 R >>');
+    add('PAGES');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+    add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    const kids = [];
+    for (const pg of this.pages) {
+      const content = pg.ops.join('\n');
+      const cid = add(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+      kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${+(pg.w * PT_PER_CM).toFixed(2)} ${+(pg.h * PT_PER_CM).toFixed(2)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${cid} 0 R >>`));
+    }
+    objs[1] = `<< /Type /Pages /Kids [${kids.map(k => k + ' 0 R').join(' ')}] /Count ${kids.length} >>`;
+    let out = '%PDF-1.4\n', offs = [];
+    objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+    const xref = out.length;
+    out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+    out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const bytes = new Uint8Array(out.length);
+    for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 255;
+    return bytes;
+  }
+}
+function wrapText(s, size, maxW, bold) {
+  const words = s.split(' '), lines = []; let cur = '';
+  for (const wd of words) {
+    const t = cur ? cur + ' ' + wd : wd;
+    if (textWidth(t, size, bold) > maxW && cur) { lines.push(cur); cur = wd; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* ---------- materials & instructions (shared by page and PDF) ---------- */
+function materials(g) {
+  const p = g.p, pb = bbox(g.cut), FW = 110;
+  const pw = pb.w, ph = pb.h;
+  const perRowA = Math.floor(FW / pw), perRowB = Math.floor(FW / ph);
+  const lenA = perRowA ? Math.ceil(3 / perRowA) * ph : Infinity, lenB = perRowB ? Math.ceil(3 / perRowB) * pw : Infinity;
+  const panels = Math.min(lenA, lenB);
+  const dW = g.dw * g.dScale, dH = p.brimH * g.dScale;
+  const diaRows = Math.ceil(g.nD / Math.max(1, Math.floor(FW / (dW + 0.5))));
+  const bandCutL = g.L + 2 * p.sa, bandCutH = 2 * p.brimH + 2 * p.sa;
+  const bandLen = bandCutL <= FW ? bandCutH : bandCutL;
+  const round10 = x => Math.ceil((x + 10) / 10) * 10;
+  return {
+    c1: round10(panels + diaRows * (dH + 0.5)),
+    c2: round10(panels + bandLen + 2),
+    interfacing: [bandCutL, p.brimH + p.sa],
+    web: [Math.min(FW, Math.ceil(g.nD / diaRows) * (dW + 0.5)), diaRows * (dH + 0.5)],
+    bandCut: [bandCutL, bandCutH],
+  };
+}
+function yards(cm) {
+  const e = Math.ceil(cm / 91.44 * 8), whole = Math.floor(e / 8), frac = e % 8;
+  const F = ['', '1/8', '1/4', '3/8', '1/2', '5/8', '3/4', '7/8'][frac];
+  return [whole || '', F].filter(Boolean).join(' ') + ' yd';
+}
+function instructions(g, units, tiled) {
+  const p = g.p, m = materials(g), u = x => fmt(x, units), N = g.N;
+  const c1 = p.c1, c2 = p.c2;
+  return [
+    { h: 'You need', list: 'ul', items: [
+      `${c1} fabric: about ${m.c1} cm (${yards(m.c1)}) of 110 cm / 44 in wide. ${c2} fabric: about ${m.c2} cm (${yards(m.c2)}). Medium-weight woven fabric is easiest: cotton twill, canvas, or wool felt. Velvet looks great but slips around.`,
+      `Medium fusible interfacing, ${u(m.interfacing[0])} x ${u(m.interfacing[1])}, to stiffen the band.`,
+      `Paper-backed fusible web (such as HeatnBond Lite or Wonder-Under), about ${u(m.web[0])} x ${u(m.web[1])}, for the diamonds.`,
+      `${N} jingle bells, thread to match, a washable marking pen, a chopstick for turning points. Optional: fibrefill, or fusible fleece, if you want the horns to stand up stiffly.`,
+    ] },
+    { h: 'Print and cut the paper', list: 'ol', items: [
+      'Print at 100% ("Actual size"). Turn off "Fit to page". Measure the 5 cm and 2 in squares before you cut anything.',
+      ...(tiled ? ['Trim each page along the frame line on its right and bottom sides. Overlap it onto the next page so the frame lines meet and the half circles make whole circles, then tape. The page map shows where each page goes.'] :
+        ['At a print shop, ask for the PDF printed at 100% scale on a 36 in (91 cm) wide roll, plain bond paper.']),
+      'Cut the paper pieces out on the solid line. The dashed line is where you stitch.',
+    ] },
+    { h: 'Cut the fabric', list: 'ol', items: [
+      `Horn panels (piece 1): lay the ${c1} and ${c2} fabrics right sides together, pin the pattern on top, and cut ${N} times. Every cut gives you one ${c1} panel and one ${c2} panel that are mirror images, which is what you need.`,
+      'Snip each notch 3 mm into the seam allowance, and mark the dot at the crown point on the wrong side.',
+      `Band (piece 2): cut 1 from ${c2}. Cut interfacing for the outer half only: from the top edge down to the fold line. Snip the V and H notches.`,
+      `Diamonds (piece 3): iron fusible web onto the back of a scrap of ${c1}, trace ${g.nD} diamonds on the paper side, and cut them out.`,
+    ] },
+    { h: 'Make the diamond band', list: 'ol', items: [
+      'Fuse the interfacing to the wrong side of the band\'s outer half.',
+      `Tape the paper band piece to a window, lay the fabric over it right side up, and trace where the diamonds go. (Or measure: points every ${u(g.dw)} along the middle of the outer half, the first one on the stitching line.)`,
+      'Peel the backing paper off the diamonds and iron them in place.',
+      'Stitch around each diamond about 2 mm in from its edge: straight stitch on felt, a narrow zigzag on woven fabric.',
+    ] },
+    { h: 'Sew the horns', list: 'ol', items: [
+      `Take a ${c2} panel and a ${c1} panel from different pairs. Put them right sides together along their VALLEY edges (the short edge from the band up to the dot). Sew from the band edge to the dot, backstitching at the dot. Make ${N} of these two-colour units and press the seams open.`,
+      `Lay two units right sides together, matching a ${c1} panel of one to the ${c2} panel of the other along their UNDER and TOP edges. Sew from the band edge along the under edge to the tip, pivot, and come back along the long top edge to the dot. Stop exactly at the dot and backstitch. Use the notches to line the edges up.`,
+      `Add the remaining unit${N > 2 ? 's' : ''} the same way, then close the ring with the last horn seam. The hat is now a tube with ${N} horns.`,
+      'Clip into the seam allowance along the inward curve of each under edge every 1.5 cm (stop 2 mm from the stitching). Trim the allowance at each tip to 3 mm. Turn right side out and push the tips out with a chopstick.',
+      'Optional: stuff the tips lightly with fibrefill, or fuse fleece to the panels before sewing, so the horns hold their arch.',
+    ] },
+    { h: 'Attach the band and finish', list: 'ol', items: [
+      'Sew the short ends of the band right sides together to make a loop, then press the seam open. This seam is centre back (CB).',
+      `With the hat right side out, slide the band loop over it, right sides together, upside down: the diamond half lies against the hat and its notched edge lines up with the hat's bottom edge. Match CB to a valley seam, each V notch to a valley seam and each H notch to a horn seam.${N % 2 ? ' This puts a horn at centre front.' : ''} Sew all the way around.`,
+      'Fold the band down and press the seam allowance up into the band. Fold the lining half inside along the fold line, turn its raw edge under, and pin it so it just covers the seam. Slipstitch it by hand, or stitch in the ditch from the outside.',
+      'Sew a bell to each tip.',
+    ] },
+  ];
+}
+
+/* ---------- PDF builders ---------- */
+function drawTitleOnPage(doc, g, units, y0, subtitle) {
+  const p = g.p;
+  doc.prim(T(1.5, y0, 'JESTER HAT PATTERN', 0.8, { bold: true }));
+  doc.prim(T(1.5, y0 + 0.75, subtitle, 0.33, { color: '#444444' }));
+  doc.prim(T(1.5, y0 + 1.3, `${g.N} horns  ·  head ${fmt(p.head, units)}  ·  depth ${fmt(p.depth, units)}  ·  band ${fmt(p.brimH, units)}  ·  seam allowance ${fmt(p.sa, units)} included`, 0.3));
+}
+function drawInstructionPages(doc, g, units, pg, tiled, startY) {
+  const left = 1.5, maxW = pg.w - 3, size = 0.3, lh = 0.43;
+  let y = startY;
+  const newPage = () => { doc.page(pg.w, pg.h); y = 1.8; };
+  for (const sec of instructions(g, units, tiled)) {
+    if (y > pg.h - 4) newPage();
+    doc.prim(T(left, y, sec.h.toUpperCase(), 0.34, { bold: true, color: '#b01e32' }));
+    doc.prim(P([[left, y + 0.18], [left + textWidth(sec.h.toUpperCase(), 0.34, true), y + 0.18]], { lw: 0.03, stroke: '#b01e32' }));
+    y += 0.65;
+    sec.items.forEach((it, i) => {
+      const bullet = sec.list === 'ol' ? `${i + 1}.` : '·';
+      const lines = wrapText(it, size, maxW - 0.7);
+      if (y + lines.length * lh > pg.h - 1.3) newPage();
+      doc.prim(T(left, y, bullet, size, { bold: true }));
+      lines.forEach((ln, k) => doc.prim(T(left + 0.6, y + k * lh, ln, size)));
+      y += lines.length * lh + 0.16;
+    });
+    y += 0.35;
+  }
+}
+function buildFullPDF(g, units) {
+  const L = fullLayout(g, units), m = 1.5;
+  const doc = new PdfDoc();
+  doc.page(L.w + 2 * m, L.h + 2 * m);
+  doc.prims(L.prims, m, m);
+  return { bytes: doc.output(), w: L.w + 2 * m, h: L.h + 2 * m };
+}
+function buildInstructionsPDF(g, units, paper) {
+  const pg = PAPERS[paper], doc = new PdfDoc();
+  doc.page(pg.w, pg.h);
+  drawTitleOnPage(doc, g, units, 2.2, 'Sewing instructions');
+  drawInstructionPages(doc, g, units, pg, false, 4.4);
+  return doc.output();
+}
+function buildTiledPDF(g, units, paper) {
+  const TL = tiledLayout(g, units, paper), pg = TL.pg, m = TILE_MARGIN, tw = TL.tw, th = TL.th;
+  const doc = new PdfDoc();
+  const usedSet = new Set(TL.used.map(([r, c]) => r + ',' + c));
+  // cover
+  doc.page(pg.w, pg.h);
+  drawTitleOnPage(doc, g, units, 2.2, `Tiled for ${pg.name}: ${TL.used.length} pattern pages after this cover and the instructions.`);
+  doc.prim(T(1.5, 4.2, 'Print at 100% / "Actual size". Measure these squares before cutting:', 0.32, { bold: true }));
+  doc.prim(P([[1.5, 4.7], [6.5, 4.7], [6.5, 9.7], [1.5, 9.7]], { closed: true, lw: 0.03 }));
+  doc.prim(T(4, 7.35, '5 cm', 0.45, { bold: true, anchor: 'middle' }));
+  const s2 = 2 * IN;
+  doc.prim(P([[7.5, 4.7], [7.5 + s2, 4.7], [7.5 + s2, 4.7 + s2], [7.5, 4.7 + s2]], { closed: true, lw: 0.03 }));
+  doc.prim(T(7.5 + s2 / 2, 4.7 + s2 / 2 + 0.17, '2 in', 0.45, { bold: true, anchor: 'middle' }));
+  // legend beside squares
+  let lx = 14, ly = 5;
+  const leg = [[{ lw: LW_CUT }, 'Cut line'], [{ lw: LW_SEAM, stroke: SEAMC, dash: DASH_SEAM }, 'Stitching line'], [{ lw: 0.03, dash: DASH_FOLD }, 'Fold line']];
+  for (const [st, lab] of leg) { doc.prim(P([[lx, ly], [lx + 1.5, ly]], st)); doc.prim(T(lx + 1.9, ly + 0.11, lab, 0.3)); ly += 0.75; }
+  doc.prim(P([[lx + 0.75, ly - 0.3], [lx + 0.75, ly + 0.3]], { lw: 0.035 })); doc.prim(T(lx + 1.9, ly + 0.11, 'Notch', 0.3)); ly += 0.75;
+  doc.prim(P(circle([lx + 0.75, ly], 0.14), { closed: true, fill: MARK, stroke: null })); doc.prim(T(lx + 1.9, ly + 0.11, 'Dot', 0.3));
+  // page map
+  doc.prim(T(1.5, 11.2, 'PAGE MAP', 0.34, { bold: true, color: '#b01e32' }));
+  doc.prim(T(1.5, 11.75, 'Grey squares are blank and are not printed. Pages are labelled row letter + column number.', 0.28, { color: '#444444' }));
+  const mapW = pg.w - 3, mapH = pg.h - 12.6 - 1.5;
+  const sc = Math.min(mapW / (TL.cols * tw), mapH / (TL.rows * th));
+  const mx = 1.5, my = 12.4;
+  for (let r = 0; r < TL.rows; r++) for (let c = 0; c < TL.cols; c++) {
+    const x = mx + c * tw * sc, y = my + r * th * sc, used = usedSet.has(r + ',' + c);
+    doc.prim(P([[x, y], [x + tw * sc, y], [x + tw * sc, y + th * sc], [x, y + th * sc]], { closed: true, lw: 0.02, stroke: '#999999', fill: used ? '#ffffff' : '#e6e6e6' }));
+  }
+  const mapPrims = TL.L.prims.filter(q => q.t === 'path' && q.lw === LW_CUT).map(q => Object.assign({}, q, { pts: q.pts.map(([x, y]) => [mx + x * sc, my + y * sc]), lw: 0.03, fill: '#fbe3e6' }));
+  for (const q of mapPrims) doc.prim(q);
+  for (const [r, c] of TL.used) doc.prim(T(mx + (c + 0.5) * tw * sc, my + (r + 0.5) * th * sc + 0.15, tileName(r, c), Math.min(0.5, tw * sc * 0.25), { bold: true, anchor: 'middle', color: '#333333' }));
+  // instructions
+  doc.page(pg.w, pg.h);
+  drawInstructionPages(doc, g, units, pg, true, 1.8);
+  // tiles
+  const R = 0.7;
+  for (const [r, c] of TL.used) {
+    doc.page(pg.w, pg.h);
+    doc.prim(T(m, 0.65, `Jester hat  ·  page ${tileName(r, c)}  (row ${String.fromCharCode(65 + r)}, column ${c + 1})`, 0.28, { color: '#555555' }));
+    doc.prim(T(pg.w - m, 0.65, `${fmt(g.p.head, units)} head · print at 100%`, 0.28, { anchor: 'end', color: '#555555' }));
+    doc.prim(T(pg.w / 2, pg.h / 2 + 1.2, tileName(r, c), 3.4, { bold: true, anchor: 'middle', color: '#ececec' }));
+    doc.clip(m, m, tw, th);
+    doc.prims(TL.L.prims, m - c * tw, m - r * th);
+    // alignment half-circles on shared edges
+    const nb = [[-1, 0, tw / 2, 0], [1, 0, tw / 2, th], [0, -1, 0, th / 2], [0, 1, tw, th / 2]];
+    for (const [dr, dc, ex, ey] of nb) {
+      const rr = r + dr, cc = c + dc;
+      if (rr < 0 || cc < 0 || rr >= TL.rows || cc >= TL.cols) continue;
+      const cxy = [m + ex, m + ey];
+      doc.prim(P(circle(cxy, R, 32), { closed: true, lw: 0.03, stroke: '#333333' }));
+      const lab = [tileName(r, c), tileName(rr, cc)].sort().join('|');
+      const off = dr ? [0, -dr * (R + 0.35)] : [-dc * (R + 0.15), 0];
+      doc.prim(T(cxy[0] + off[0], cxy[1] + off[1] + 0.1, lab, 0.26, { anchor: dc > 0 ? 'end' : dc < 0 ? 'start' : 'middle', color: '#333333' }));
+    }
+    doc.unclip();
+    doc.prim(P([[m, m], [m + tw, m], [m + tw, m + th], [m, m + th]], { closed: true, lw: 0.02, stroke: '#888888' }));
+  }
+  return { bytes: doc.output(), pages: doc.pages.length, tiles: TL.used.length, TL };
+}
+</script>
+
+<script>
+/* ===================== Page UI ===================== */
+const LEN_FIELDS = ['head', 'ease', 'depth', 'brimH', 'hornHeight', 'hornReach', 'tipHeight', 'hornDepth', 'inset', 'sa'];
+const $ = id => document.getElementById(id);
+let units = 'cm';
+let lastGeom = null;
+
+function loadSaved() { try { return JSON.parse(localStorage.getItem('jester-hat-params') || 'null'); } catch (e) { return null; } }
+function save(p) { try { localStorage.setItem('jester-hat-params', JSON.stringify(p)); } catch (e) {} }
+
+function setFields(p) {
+  units = p.units || 'cm';
+  $('u-' + units).checked = true;
+  for (const f of LEN_FIELDS) $(f).value = trimNum(units === 'in' ? p[f] / IN : p[f], units === 'in' ? 2 : 1);
+  $('horns').value = String(p.horns);
+  $('diamonds').value = p.diamonds > 0 ? p.diamonds : '';
+  for (const f of ['c1', 'c2', 'c1hex', 'c2hex', 'paper']) $(f).value = p[f];
+  document.querySelectorAll('.u').forEach(s => s.textContent = units === 'in' ? 'in' : 'cm');
+}
+function readFields() {
+  const d = defaultParams(), p = { units };
+  for (const f of LEN_FIELDS) { const v = parseFloat($(f).value); p[f] = isFinite(v) ? (units === 'in' ? v * IN : v) : d[f]; }
+  p.horns = parseInt($('horns').value, 10);
+  p.diamonds = parseInt($('diamonds').value, 10) || 0;
+  for (const f of ['c1', 'c2', 'c1hex', 'c2hex', 'paper']) p[f] = $(f).value || d[f];
+  p.head = Math.max(30, p.head); p.sa = Math.max(0.3, p.sa); p.brimH = Math.max(1, p.brimH); p.ease = Math.max(0, p.ease);
+  p.hornDepth = Math.max(1, p.hornDepth); p.hornReach = Math.max(1, p.hornReach); p.inset = Math.max(0, Math.min(p.inset, p.brimH / 3));
+  return p;
+}
+
+function topView(g) {
+  const p = g.p, N = g.N, R = 25, cxy = 62, out = [];
+  const pos = (phi, r) => [cxy - Math.sin(phi) * r, cxy - Math.cos(phi) * r];
+  // band ring, alternating panel colours
+  for (let i = 0; i < 2 * N; i++) {
+    const a0 = i * Math.PI / N, a1 = (i + 1) * Math.PI / N, steps = 12, pts = [];
+    for (let s = 0; s <= steps; s++) pts.push(pos(a0 + (a1 - a0) * s / steps, R));
+    for (let s = steps; s >= 0; s--) pts.push(pos(a0 + (a1 - a0) * s / steps, R - 5));
+    out.push(`<path d="M${pts.map(q => q.map(v => v.toFixed(2)).join(' ')).join('L')}Z" fill="${i % 2 ? p.c2hex : p.c1hex}" stroke="var(--ink)" stroke-width=".5"/>`);
+  }
+  // horns: each one split lengthwise into its two colours
+  for (let k = 0; k < N; k++) {
+    const phiC = (2 * k + 1) * Math.PI / N;
+    const u = [-Math.sin(phiC), -Math.cos(phiC)], v = [u[1], -u[0]];
+    for (const side of [-1, 1]) {
+      const pts = [];
+      for (let i = 0; i <= 20; i++) {
+        const t = i / 20, r = t * R * 2.1, hw = 9 * Math.pow(1 - t, 0.9) * Math.min(1, 0.35 + t * 3);
+        pts.push([cxy + u[0] * r + v[0] * hw * side, cxy + u[1] * r + v[1] * hw * side]);
+      }
+      pts.push([cxy, cxy]);
+      const probe = [cxy + u[0] * R + v[0] * side, cxy + u[1] * R + v[1] * side];
+      let ang = Math.atan2(-(probe[0] - cxy), -(probe[1] - cxy)); if (ang < 0) ang += 2 * Math.PI;
+      const col = Math.floor(ang / (Math.PI / N)) % 2 ? p.c2hex : p.c1hex;
+      out.push(`<path d="M${pts.map(q => q.map(v => v.toFixed(2)).join(' ')).join('L')}Z" fill="${col}" stroke="var(--ink)" stroke-width=".6" stroke-linejoin="round"/>`);
+    }
+  }
+  out.push(`<text x="62" y="123" text-anchor="middle" font-size="7" fill="var(--muted)" font-family="IBM Plex Mono, monospace">FRONT</text>`);
+  out.push(`<text x="62" y="6" text-anchor="middle" font-size="7" fill="var(--muted)" font-family="IBM Plex Mono, monospace">BACK</text>`);
+  return `<svg viewBox="0 0 124 126" role="img" aria-label="Top view of the hat showing horn colours">${out.join('')}</svg>`;
+}
+
+function render() {
+  const p = readFields();
+  save(p);
+  const g = computePattern(p);
+  lastGeom = g;
+  const L = fullLayout(g, units), m = 1;
+  const W = L.w + 2 * m, H = L.h + 2 * m;
+  $('sheet').innerHTML = `<svg viewBox="0 0 ${W.toFixed(2)} ${H.toFixed(2)}" role="img" aria-label="Full-size pattern sheet"><rect width="${W}" height="${H}" fill="#f7f7f4"/><g transform="translate(${m} ${m})">${primsToSvg(L.prims)}</g></svg>`;
+  $('sheetSize').textContent = `sheet ${fmt(W + 1, units)} x ${fmt(H + 1, units)}`;
+  $('diamondHint').textContent = `Blank = auto (${g.nD}). Multiples of ${2 * g.N} line up with the seams`;
+  $('diamonds').placeholder = String(g.nD);
+
+  const w = $('warnings');
+  w.hidden = !g.warnings.length;
+  w.innerHTML = g.warnings.length ? '<ul>' + g.warnings.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>' : '';
+
+  const mt = materials(g), u = x => fmt(x, units);
+  $('cutlist').innerHTML = [
+    ['1 Horn panel', `${g.N} ${esc(p.c1)} + ${g.N} ${esc(p.c2)}`],
+    ['2 Band', `1 ${esc(p.c2)}`],
+    ['&nbsp;&nbsp;band cut size', `${u(mt.bandCut[0])} x ${u(mt.bandCut[1])}`],
+    ['3 Diamond', `${g.nD} ${esc(p.c1)}`],
+    [`${esc(p.c1)} fabric`, `${mt.c1} cm · ${yards(mt.c1)}`],
+    [`${esc(p.c2)} fabric`, `${mt.c2} cm · ${yards(mt.c2)}`],
+  ].map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+  $('seams').innerHTML = [
+    ['Under edge (band to tip)', u(g.lengths.under)],
+    ['Top edge (dot to tip)', u(g.lengths.top)],
+    ['Valley (band to dot)', u(g.lengths.valley)],
+    ['Panel bottom', u(g.w)],
+    ['Band, finished', u(g.L)],
+    ['Diamond spacing', u(g.dw)],
+  ].map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+  $('topview').innerHTML = topView(g);
+
+  const TP = buildTiledPDF(g, units, p.paper);
+  $('tiledInfo').textContent = `${PAPERS[p.paper].name}, ${TP.pages} pages`;
+  $('fullInfo').textContent = `${fmt(W + 1, units)} x ${fmt(H + 1, units)} sheet`;
+
+  $('howto').innerHTML = '<h2>Sewing it together</h2>' + instructions(g, units, true).map(sec =>
+    `<section><h3>${esc(sec.h)}</h3><${sec.list}>${sec.items.map(i => `<li>${esc(i)}</li>`).join('')}</${sec.list}></section>`).join('');
+}
+
+/* downloads: the Claude viewer's save prompt when available, otherwise a normal browser download */
+const downloadsReady = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+async function saveFile(name, data, mime) {
+  const st = $('status');
+  const blob = new Blob([data], { type: mime });
+  const dl = await downloadsReady;
+  if (dl) {
+    try { await dl.save({ filename: name, data: blob }); st.textContent = 'Saved ' + name; }
+    catch (e) { st.textContent = e && e.code === 'declined' ? 'Download cancelled.' : 'This view can’t save files. Open the page in a browser to download.'; }
+    return;
+  }
+  if (window.claude) { st.textContent = 'This view can’t save files. Open the page in a browser to download.'; return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  st.textContent = 'Downloaded ' + name;
+}
+function baseName() { const p = lastGeom.p; return `jester-hat-${trimNum(units === 'in' ? p.head / IN : p.head, 1)}${units}`; }
+
+$('spec').addEventListener('input', render);
+$('spec').addEventListener('submit', e => e.preventDefault());
+document.querySelectorAll('input[name=units]').forEach(r => r.addEventListener('change', () => {
+  const p = readFields(); p.units = r.value; setFields(p); render();
+}));
+$('rescale').addEventListener('click', () => { const p = readFields(); Object.assign(p, proportions(p.head)); setFields(p); render(); });
+$('dlTiled').addEventListener('click', () => { const r = buildTiledPDF(lastGeom, units, lastGeom.p.paper); saveFile(`${baseName()}-tiled-${lastGeom.p.paper}.pdf`, r.bytes, 'application/pdf'); });
+$('dlFull').addEventListener('click', () => { const r = buildFullPDF(lastGeom, units); saveFile(`${baseName()}-fullsize.pdf`, r.bytes, 'application/pdf'); });
+$('dlSvg').addEventListener('click', () => { const r = buildSVG(lastGeom, units); saveFile(`${baseName()}-fullsize.svg`, r.svg, 'image/svg+xml'); });
+
+setFields(Object.assign(defaultParams(), loadSaved() || {}));
+render();
+</script>
